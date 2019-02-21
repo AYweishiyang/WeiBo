@@ -98,8 +98,40 @@ public class WeiBo {
 	 * versions:1
 	 * @throws IOException
 	 */
-	private void initTableRelation() {
+	private void initTableRelation() throws IOException {
+		Connection connection = ConnectionFactory.createConnection(conf);
+		Admin admin = connection.getAdmin();
+		//创建用户关系表描述器
+		HTableDescriptor relationTableDescriptor = new HTableDescriptor(TableName.valueOf(TABLE_RELATION));
 		
+		//创建attends列描述器
+		HColumnDescriptor attendsColumnDescriptor = new HColumnDescriptor("attends");
+		//设置块缓存
+		attendsColumnDescriptor.setBlockCacheEnabled(true);
+		//设置块缓存大小 2M
+		attendsColumnDescriptor.setBlocksize(2 * 1024 * 1024);
+		//设置版本
+		attendsColumnDescriptor.setMinVersions(1);
+		attendsColumnDescriptor.setMaxVersions(1);
+				
+		//创建fans列描述器
+		HColumnDescriptor fansColumnDescriptor = new HColumnDescriptor("fans");
+		//设置块缓存
+		fansColumnDescriptor.setBlockCacheEnabled(true);
+		//设置块缓存大小 2M
+		fansColumnDescriptor.setBlocksize(2 * 1024 * 1024);
+		//设置版本
+		fansColumnDescriptor.setMinVersions(1);
+		fansColumnDescriptor.setMaxVersions(1);
+		
+		//将两个列描述器添加到表描述器中
+		relationTableDescriptor.addFamily(attendsColumnDescriptor);
+		relationTableDescriptor.addFamily(fansColumnDescriptor);
+		
+		//创建表
+		admin.createTable(relationTableDescriptor);
+		admin.close();
+		connection.close();
 	}
 	/**
 	 * 表名：ns_weibo:inbox
@@ -111,7 +143,23 @@ public class WeiBo {
 	 * @throws IOException
 	 */
 	private void initTableInbox() throws IOException {
+		Connection connection = ConnectionFactory.createConnection(conf);
+		Admin admin = connection.getAdmin();
 		
+		HTableDescriptor inboxTableDescriptor = new HTableDescriptor(TableName.valueOf(TABLE_INBOX));
+		HColumnDescriptor infoColumnDescriptor = new HColumnDescriptor("info");
+		//设置块缓存
+		infoColumnDescriptor.setBlockCacheEnabled(true);
+		//设置块缓存大小 2M
+		infoColumnDescriptor.setBlocksize(2 * 1024 * 1024);
+		//设置版本
+		infoColumnDescriptor.setMinVersions(100);
+		infoColumnDescriptor.setMaxVersions(100);
+		
+		inboxTableDescriptor.addFamily(infoColumnDescriptor);
+		admin.createTable(inboxTableDescriptor);
+		admin.close();
+		connection.close();
 	}
 
 	public static void main(String[] args) {
